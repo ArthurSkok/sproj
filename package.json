@@ -10,9 +10,17 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@react-navigation/native": "^6.0.10",
+    "@react-navigation/native-stack": "^6.6.1",
+    "@react-navigation/stack": "^6.2.1",
     "react": "17.0.2",
     "react-native": "0.67.4",
-    "react-native-ble-plx": "^2.0.3"
+    "react-native-ble-plx": "^2.0.3",
+    "react-native-gesture-handler": "^2.3.2",
+    "react-native-safe-area-context": "^4.2.4",
+    "react-native-screens": "^3.13.1",
+    "react-native-shared-element": "^0.7.0",
+    "react-navigation-shared-element": "^5.0.0-alpha1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

@@ -1,16 +1,11 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
 import React from 'react';
 import type {Node} from 'react';
 import {BleManager} from 'react-native-ble-plx';
-
+import {createStackNavigation, createStackNavigator} from '@react-navigation/stack';
+import {NavigationContainer} from '@react-navigation/native';
 import requestLocationPermission from './permissions/requestPermissionLocation';
+import HomeScreen from './screens/homescreen';
+import MapScreen from './screens/mapscreen';
 import {
   SafeAreaView,
   ScrollView,
@@ -26,9 +21,79 @@ import {
   Colors,
   DebugInstructions,
   Header,
-  LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+const Stack = createStackNavigator();
+const manager = new BleManager();
+const SERVICE_UUID ='';
+
+/**https://github.com/palmmaximilian/ReactNativeArduinoBLE/blob/main/App.tsx**/
+export default function App() {
+      async function scanDevices() {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Permission Localisation Bluetooth',
+            message: 'Requirement for Bluetooth',
+            buttonNeutral: 'Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        ).then(answere => {
+          console.log('scanning');
+          // display the Activityindicator
+
+          BLTManager.startDeviceScan(null, null, (error, scannedDevice) => {
+            if (error) {
+              console.warn(error);
+            }
+
+            if (scannedDevice && scannedDevice.name == 'BLEExample') {
+              BLTManager.stopDeviceScan();
+              connectDevice(scannedDevice);
+            }
+          });
+
+          // stop scanning devices after 5 seconds
+          setTimeout(() => {
+            BLTManager.stopDeviceScan();
+          }, 5000);
+        });
+      }
+
+        return(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name="Home"
+                        component = {HomeScreen}
+                    />
+                    <Stack.Screen
+                        name = "LargeMap"
+                        component = {MapScreen}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>
+        );
+
+}
+/**
+const App =() => {
+    const App = createStackNavigator();
+
+    return (
+    <NavigationContainer>
+    <App.Navigator>
+        <App.Screen
+            name = "Home"
+            component = {HomeScreen}
+            />
+        <App.Screen
+            name = "Map"
+            component = "MapScreen"
+        />
+    </App.Navigator>
+    );
+};
 
 const Section = ({children, title}): Node => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -81,7 +146,7 @@ const App: () => Node = () => {
           }
           // found a bluetooth device
           if (device.name) {
-            console.log(`${device.name} (${device.id})}`);
+            console.log(${device.name} (${device.id})});
           }
 
           // stop scan after 5s
@@ -92,6 +157,7 @@ const App: () => Node = () => {
     };
 
   return (
+    <NavigationContainer>
     <SafeAreaView style={backgroundStyle}>
     <TouchableOpacity style={styles.btnContainer} onPress={scanDevices}>
             <Text>Start Scanning Device</Text>
@@ -109,21 +175,14 @@ const App: () => Node = () => {
             Edit <Text style={styles.highlight}>App.js</Text> to change this
             screen and then come back to see your edits.
           </Section>
-          <Section title="See Your Changess">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
+
         </View>
       </ScrollView>
     </SafeAreaView>
+    </NavigationContainer>
   );
 };
-
+*/
 const styles = StyleSheet.create({
   sectionContainer: {
     marginTop: 32,
@@ -152,5 +211,3 @@ const styles = StyleSheet.create({
       padding: 5,
     },
 });
-
-export default App;
