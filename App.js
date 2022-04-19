@@ -23,12 +23,14 @@ import {
   Header,
 } from 'react-native/Libraries/NewAppScreen';
 const Stack = createStackNavigator();
+/**const Stack = createStackNavigator();
 const manager = new BleManager();
 const SERVICE_UUID ='';
-
+**/
 /**https://github.com/palmmaximilian/ReactNativeArduinoBLE/blob/main/App.tsx**/
 export default function App() {
-      async function scanDevices() {
+
+      /**async function scanDevices() {
         PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
@@ -58,8 +60,7 @@ export default function App() {
             BLTManager.stopDeviceScan();
           }, 5000);
         });
-      }
-
+      }**/
         return(
             <NavigationContainer>
                 <Stack.Navigator>
