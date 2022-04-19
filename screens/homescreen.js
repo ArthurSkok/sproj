@@ -161,6 +161,14 @@ export default class HomeScreen extends React.Component {
             }
         />
         </View>
+        <View style = {styles.bottomButton}>
+                <Button
+                    title="Go to prompt screen"
+                    onPress={() =>
+                        this.props.navigation.navigate('Prompt')
+                    }
+                />
+                </View>
     </View>
     );
   }

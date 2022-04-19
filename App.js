@@ -6,6 +6,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import requestLocationPermission from './permissions/requestPermissionLocation';
 import HomeScreen from './screens/homescreen';
 import MapScreen from './screens/mapscreen';
+import PromptScreen from './screens/promptscreen';
 import {
   SafeAreaView,
   ScrollView,
@@ -67,6 +68,10 @@ export default function App() {
                     <Stack.Screen
                         name="Home"
                         component = {HomeScreen}
+                    />
+                    <Stack.Screen
+                        name="Prompt"
+                        component = {PromptScreen}
                     />
                     <Stack.Screen
                         name = "LargeMap"
