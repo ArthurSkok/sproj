@@ -191,7 +191,7 @@ export default class HomeScreen extends React.Component {
     return (
     <View>
         <Text style = {styles.title}>This is the home screen</Text>
-        <Text>{this.state.data}</Text>
+        <Text style = {styles.datat}>{this.state.data}</Text>
             {this.state.deviceid ?
                 (
                     <Button
@@ -248,5 +248,9 @@ const styles = StyleSheet.create({
   },
   separator: {
     borderBottomColor: '#737373',
+  },
+  datat: {
+    color: 'red',
+    textAlign: 'center',
   },
 });
