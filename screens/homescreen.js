@@ -2,13 +2,12 @@ import React from 'react';
 import {Platform, NativeModules, NativeEventEmitter, PermissionsAndroid, StyleSheet, Text, View , Button, Alert} from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import {BleManager} from 'react-native-ble-plx';
-
 export default class HomeScreen extends React.Component {
   constructor (){
           super()
           this.manager = new BleManager()
           this.state = {
-              deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],showToast: false,
+              deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
               notificationReceiving : false
           }
       }
@@ -87,21 +86,73 @@ export default class HomeScreen extends React.Component {
                   .catch((err)=>console.log("error on cancel connection",err))
              })
       }
+
       async scanAndConnect() {
-          this.setState({text1:"Scanning..."})
+          /**this.setState({text1:"Scanning..."})**/
           this.manager.startDeviceScan(null, null, (error, device) => {
               console.log("Scanning...");
               if (error) {
-                  console.log('ERROR: ', error);
-
-                  /**hahahh
-
-
+                  /**console.log('ERROR: ', error);**/
                   this.setState({text1:""})
+                  console.log('Scanning ERROR', error);
                   this.manager.stopDeviceScan();
-                  **/
                   return
               }
+              if((device.id === '6C:79:B8:B7:43:74')){
+                console.log('device found: ' + device.name + '(' + device.id + ')');
+                const serviceUUIDs= device.serviceUUIDs[0]
+                this.manager.stopDeviceScan();
+                this.manager.connectToDevice(device.id, {autoConnect:true}).then((device) => {
+                    (async () => {
+                    const services = await device.discoverAllServicesAndCharacteristics()
+                    const characteristic = await this.getServicesAndCharacteristics(services)
+                    console.log("characteristic")
+                    console.log(characteristic)
+                    console.log("Discovering services and characteristics",characteristic.uuid);
+                    this.setState({"deviceid":device.id, serviceUUID:serviceUUIDs, characteristicsUUID : characteristic.uuid,device:device })
+                    this.setState({text1:"Connected to "+device.name})
+                    console.log("Got to here 1")
+                    })()
+                    this.setState({device:device})
+                    return device.discoverAllServicesAndCharacteristics()
+                    console.log("Got to here 2")
+                }).then((device) => {
+                    device.monitorCharacteristicForService('0000ffe0-0000-1000-8000-00805f9b34fb', '0000ffe1-0000-1000-8000-00805f9b34fb', (error, characteristic) => {
+                    if (error) {
+                        console.log(error)
+                    return
+                    }
+                    console.log(characteristic.value)
+                    console.log("read value")
+                    })
+                }).then(() => {
+                        console.log("Listening...")
+                })
+              }
+          });
+      }
+      /**async readData(device){
+        if(device){
+            device.monitorCharacteristicForService('0000ffe0-0000-1000-8000-00805f9b34fb', '0000ffe1-0000-1000-8000-00805f9b34fb', (error, characteristic) => {
+            if (error) {
+                this.error(error.message)
+                return
+            }
+            if(characteristic){
+                var raw = characteristic.value;
+                var decodeVal = base64.decode(raw);
+                console.log('${raw}: ${decodeVal}');
+
+            }
+            const buf = Buffer.from(characteristic.value, 'base64');
+            console.log(buf[1]);
+            this.updateValue(characteristic.uuid, characteristic.value)
+            })
+        } /** service 0000ffe0-0000-1000-8000-00805f9b34fb 0000ffe1-0000-1000-8000-00805f9b34fb
+
+      }**/
+
+                /**
               if( /[_]/g.test( device.name ) )
                   {
                       let nameSplit = device.name.split('_');
@@ -130,8 +181,9 @@ export default class HomeScreen extends React.Component {
                           })
                       }
                   }
-          });
-      }
+                  **/
+
+
   render() {
     return (
     <View>
@@ -168,9 +220,10 @@ export default class HomeScreen extends React.Component {
                         this.props.navigation.navigate('Prompt')
                     }
                 />
-                </View>
+        </View>
+
     </View>
-    );
+    )
   }
 }
 
