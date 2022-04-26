@@ -8,7 +8,7 @@ export default class HomeScreen extends React.Component {
           this.manager = new BleManager()
           this.state = {
               deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
-              notificationReceiving : false
+              notificationReceiving : false, data: ''
           }
       }
       /**
@@ -123,6 +123,9 @@ export default class HomeScreen extends React.Component {
                     return
                     }
                     console.log(characteristic.value)
+                    temp1 = characteristic.value
+                    this.setState({data:temp1})
+                    console.log(this.state.data)
                     console.log("read value")
                     })
                 }).then(() => {
@@ -188,6 +191,7 @@ export default class HomeScreen extends React.Component {
     return (
     <View>
         <Text style = {styles.title}>This is the home screen</Text>
+        <Text>{this.state.data}</Text>
             {this.state.deviceid ?
                 (
                     <Button
