@@ -2,13 +2,15 @@ import React from 'react';
 import {Platform, NativeModules, NativeEventEmitter, PermissionsAndroid, StyleSheet, Text, View , Button, Alert} from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import {BleManager} from 'react-native-ble-plx';
+import base64 from 'react-native-base64';
+
 export default class HomeScreen extends React.Component {
   constructor (){
           super()
           this.manager = new BleManager()
           this.state = {
               deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
-              notificationReceiving : false, data: ''
+              notificationReceiving : false, data: '', latitude: '', longitude: '',
           }
       }
       /**
@@ -72,6 +74,7 @@ export default class HomeScreen extends React.Component {
                   })
               })
       }
+
       disconnect(){
               return new Promise((resolve, reject) => {
                   this.manager.cancelDeviceConnection(this.state.deviceid).
@@ -124,8 +127,21 @@ export default class HomeScreen extends React.Component {
                     }
                     console.log(characteristic.value)
                     temp1 = characteristic.value
-                    this.setState({data:temp1})
+                    console.log("raw")
+                    console.log(temp1)
+                    const decoded = base64.decode(temp1);
+                    const coorarray = decoded.split(',')
+                    const lat = coorarray[0]
+                    this.setState({latitude:lat})
+                    const lon = coorarray[1]
+                    this.setState({longitude:lon})
+                    console.log(this.state.latitude)
+                    console.log(this.state.longitude)
+                    this.setState({data:decoded})
+                    //this.setState({data:temp1})
+                    console.log("state value:")
                     console.log(this.state.data)
+                    console.log(decoded)
                     console.log("read value")
                     })
                 }).then(() => {
@@ -134,57 +150,7 @@ export default class HomeScreen extends React.Component {
               }
           });
       }
-      /**async readData(device){
-        if(device){
-            device.monitorCharacteristicForService('0000ffe0-0000-1000-8000-00805f9b34fb', '0000ffe1-0000-1000-8000-00805f9b34fb', (error, characteristic) => {
-            if (error) {
-                this.error(error.message)
-                return
-            }
-            if(characteristic){
-                var raw = characteristic.value;
-                var decodeVal = base64.decode(raw);
-                console.log('${raw}: ${decodeVal}');
 
-            }
-            const buf = Buffer.from(characteristic.value, 'base64');
-            console.log(buf[1]);
-            this.updateValue(characteristic.uuid, characteristic.value)
-            })
-        } /** service 0000ffe0-0000-1000-8000-00805f9b34fb 0000ffe1-0000-1000-8000-00805f9b34fb
-
-      }**/
-
-                /**
-              if( /[_]/g.test( device.name ) )
-                  {
-                      let nameSplit = device.name.split('_');
-                      if(nameSplit[0] == 'TAPP'){ //T3X1 //TAPP
-                          const serviceUUIDs= device.serviceUUIDs[0]
-                          this.setState({text1:"Connecting to "+device.name})
-                          this.manager.stopDeviceScan();
-                          this.manager.connectToDevice(device.id, {autoConnect:true}).then((device) => {
-                              (async () => {
-                                  const services = await device.discoverAllServicesAndCharacteristics()
-                                  const characteristic = await this.getServicesAndCharacteristics(services)
-                                  console.log("characteristic")
-                                  console.log(characteristic)
-                                  console.log("Discovering services and characteristics",characteristic.uuid);
-                                  this.setState({"deviceid":device.id, serviceUUID:serviceUUIDs, characteristicsUUID : characteristic.uuid,device:device })
-                                  this.setState({text1:"Conneted to "+device.name})
-                              })();
-                              this.setState({device:device})
-                              return device.discoverAllServicesAndCharacteristics()
-                          }).then((device) => {
-                              // return this.setupNotifications(device)
-                          }).then(() => {
-                              console.log("Listening...")
-                          }, (error) => {
-                              this.alert("Connection error"+JSON.stringify(error))
-                          })
-                      }
-                  }
-                  **/
 
 
   render() {
