@@ -3,6 +3,10 @@ import {Platform, NativeModules, NativeEventEmitter, PermissionsAndroid, StyleSh
 import { Navigation } from 'react-native-navigation';
 import {BleManager} from 'react-native-ble-plx';
 import base64 from 'react-native-base64';
+import { AsyncStorage } from 'react-native';
+//import { storeData, getData } from '../async/asyncfuncs';
+import { MMKV } from 'react-native-mmkv'
+export const storage = new MMKV()
 
 export default class HomeScreen extends React.Component {
   constructor (){
@@ -90,6 +94,7 @@ export default class HomeScreen extends React.Component {
              })
       }
 
+
       async scanAndConnect() {
           /**this.setState({text1:"Scanning..."})**/
           this.manager.startDeviceScan(null, null, (error, device) => {
@@ -132,17 +137,19 @@ export default class HomeScreen extends React.Component {
                     const decoded = base64.decode(temp1);
                     const coorarray = decoded.split(',')
                     const lat = coorarray[0]
-                    this.setState({latitude:lat})
                     const lon = coorarray[1]
-                    this.setState({longitude:lon})
-                    console.log(this.state.latitude)
-                    console.log(this.state.longitude)
+                    storage.set('latitude', lat)
+                    storage.set('longitude', lon)
+                    const newLat = storage.getString('latitude')
+                    const newLon = storage.getString('longitude')
+                    //storeData("latitude", JSON.stringify(lat))
+                    //storeData("longitude", JSON.stringify(lon))
+                    //const newLat = (getData("latitude"))
+                    //const newLon = (getData("longitude"))
+                    console.log("New lat", newLat)
+                    console.log("New long", newLon)
                     this.setState({data:decoded})
                     //this.setState({data:temp1})
-                    console.log("state value:")
-                    console.log(this.state.data)
-                    console.log(decoded)
-                    console.log("read value")
                     })
                 }).then(() => {
                         console.log("Listening...")
