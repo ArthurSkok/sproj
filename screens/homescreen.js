@@ -7,6 +7,7 @@ import { AsyncStorage } from 'react-native';
 //import { storeData, getData } from '../async/asyncfuncs';
 import { MMKV } from 'react-native-mmkv'
 export const storage = new MMKV()
+import { getDistance } from 'geolib';
 
 export default class HomeScreen extends React.Component {
   constructor (){
@@ -14,7 +15,7 @@ export default class HomeScreen extends React.Component {
           this.manager = new BleManager()
           this.state = {
               deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
-              notificationReceiving : false, data: '', latitude: '', longitude: '',
+              notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0,
           }
       }
       /**
@@ -138,6 +139,29 @@ export default class HomeScreen extends React.Component {
                     const coorarray = decoded.split(',')
                     const lat = coorarray[0]
                     const lon = coorarray[1]
+                    const OldLat = parseFloat(storage.getString('latitude'))
+                    const OldLong = parseFloat(storage.getString('longitude'))
+                    const distance = getDistance(
+                                         { latitude: OldLat, longitude: OldLong },
+                                         { latitude: lat, longitude: lon}
+                    );
+                    console.log(distance)
+                    storage.set('cDistance', distance)
+
+                    const currentSum = storage.getNumber('storedDistance')
+
+                    totalDist = distance + currentSum
+                    this.setState({distCount: this.state.distCount + 1})
+                    if(totalDist > 5){
+                        console.log("Travelled far")
+                    }
+                    console.log("The total count is ", this.state.distCount)
+                    if(this.state.distCount > 5){
+                        this.setState({distCount: 0})
+                        console.log("Reset Total")
+                    }
+                    storage.set('storedDistance', totalDist)
+                    console.log('Distance from last coordinate', distance)
                     storage.set('latitude', lat)
                     storage.set('longitude', lon)
                     const newLat = storage.getString('latitude')
