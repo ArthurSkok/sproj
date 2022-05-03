@@ -19,7 +19,7 @@ class MapScreen extends React.Component {
           }
     }
     componentDidMount(){
-    this.interval = setInterval(() => this.setState({lat:storage.getString('latitude') , lon:storage.getString('longitude')}), 2000)
+    this.interval = setInterval(() => {this.setState({lat:storage.getString('latitude') , lon:storage.getString('longitude')}), console.log("Lat is", this.state.lat)}, 2000)
     };
     componentWillUnmount(){
     clearInterval(this.interval);

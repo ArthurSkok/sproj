@@ -7,6 +7,7 @@ import requestLocationPermission from './permissions/requestPermissionLocation';
 import HomeScreen from './screens/homescreen';
 import MapScreen from './screens/mapscreen';
 import PromptScreen from './screens/promptscreen';
+import WeatherScreen from './screens/weatherscreen';
 import {
   SafeAreaView,
   ScrollView,
@@ -76,6 +77,10 @@ export default function App() {
                     <Stack.Screen
                         name = "LargeMap"
                         component = {MapScreen}
+                    />
+                    <Stack.Screen
+                        name = "Temp"
+                        component = {WeatherScreen}
                     />
                 </Stack.Navigator>
             </NavigationContainer>
