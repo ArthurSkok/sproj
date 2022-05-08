@@ -1,5 +1,5 @@
 import React from 'react';
-import {Platform, NativeModules, NativeEventEmitter, PermissionsAndroid, StyleSheet, Text, View , Button, Alert} from 'react-native';
+import {Platform, NativeModules, NativeEventEmitter, PermissionsAndroid, StyleSheet, Text, View , Button, Alert, TouchableOpacity, Image} from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import {BleManager} from 'react-native-ble-plx';
 import base64 from 'react-native-base64';
@@ -16,7 +16,7 @@ export default class HomeScreen extends React.Component {
           super(props)
           this.manager = new BleManager()
           this.state = {
-              deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
+              deviceid : '', travel :'', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
               notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0, totalDist:0, temperatureOut: '0', hum : '0',
           }
       }
@@ -205,10 +205,11 @@ export default class HomeScreen extends React.Component {
                     console.log("The modified distance is now: ", whatisNew)
                     this.setState({distCount: this.state.distCount + 1})
                     //this.setState({totalDist:newtotalDist})
-                    if(newtotalDist > 3){
+                    if(newtotalDist > 1){
                         console.log("Travelled far AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                         this.firstAlert
                         this.setState({totalDist:0})
+                        this.setState({travel:1})
                         storage.set('storedDistance', 0)
                     }
                     console.log("The total count is ", this.state.distCount)
@@ -308,14 +309,7 @@ export default class HomeScreen extends React.Component {
             }
         />
         </View>
-        <View style = {styles.bottomButton}>
-                <Button
-                    title="Go to prompt screen"
-                    onPress={() =>
-                        this.props.navigation.navigate('Prompt')
-                    }
-                />
-        </View>
+
         <View style = {styles.bottomButton}>
                 <Button
                     title="Go to weather screen"
@@ -324,6 +318,24 @@ export default class HomeScreen extends React.Component {
                     }
                  />
         </View>
+        {this.state.travel ?
+                    (
+                    <TouchableOpacity style={styles.button} onPress={()=>{this.props.navigation.navigate('Prompt'), this.setState({travel: ''})}}>
+                        <Image style ={{height:100, width:100}} source={require("../assets/exclaim1.png")}/>
+                    </TouchableOpacity>
+
+                ) : (
+                    <View style = {styles.bottomButton}>
+                        <Button
+                            title="Go to prompt screen"
+                                onPress={() =>
+                                    this.props.navigation.navigate('Prompt')
+                                }
+                        />
+                    </View>
+
+                )
+                }
 
     </View>
     )
@@ -352,4 +364,12 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
   },
+  button: {
+      alignItems: 'center',
+      width:'100%',
+      shadowColor: '#303838',
+      shadowOffset: { width: 0, height: 5 },
+      shadowRadius: 10,
+      shadowOpacity: 0.35,
+    },
 });
