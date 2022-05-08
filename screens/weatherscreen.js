@@ -7,11 +7,14 @@ class WeatherScreen extends React.Component {
                   super(props)
 
                   this.state = {
-                  temperatureRead:0 , humRead:0, locale:"", coordinates: [],
+                  temperatureOutRead:0 ,temperatureRead:0,  humOutRead:0, humRead: 0, locale:"", coordinates: [],
               }
         }
         componentDidMount(){
-            this.interval = setInterval(() => {this.setState({temperatureRead:storage.getNumber('temperature') , humRead:storage.getNumber('humidity'),locale:storage.getString('localarea')}), console.log("Temp is", this.state.temperatureRead)}, 2000)
+            this.interval = setInterval(() => {this.setState({temperatureOutRead:storage.getNumber('temperatureOut') , humOutRead:storage.getNumber('humidityOut'),
+            locale:storage.getString('localarea'), temperatureRead:parseFloat(storage.getString('temperature')),
+            humRead:parseFloat(storage.getString('humidity'))}),
+            console.log("Temp is", this.state.temperatureOutRead)}, 2000)
         };
         componentWillUnmount(){
             clearInterval(this.interval);
@@ -19,8 +22,10 @@ class WeatherScreen extends React.Component {
   render() {
     return (
     <>
-        <Text style = {styles.datat}>Current temperature is:  {this.state.temperatureRead}</Text>
-        <Text style = {styles.datat}>Current humidity outside should be: {this.state.humRead}</Text>
+        <Text style = {styles.datat}>Current temperature is:  {this.state.temperatureOutRead}</Text>
+        <Text style = {styles.datat}>Current humidity outside should be: {this.state.humOutRead}</Text>
+        <Text style = {styles.datat}>Sensor reading temperature is:  {this.state.temperatureRead}</Text>
+        <Text style = {styles.datat}>Sensor reading humidity is: {this.state.humRead}</Text>
         <Text style = {styles.datat}>Your localarea is: {this.state.locale}</Text>
         <Button
                     title="Go to home screen"

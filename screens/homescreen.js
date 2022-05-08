@@ -17,7 +17,7 @@ export default class HomeScreen extends React.Component {
           this.manager = new BleManager()
           this.state = {
               deviceid : '', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
-              notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0, totalDist:0, temperature: '0', hum : '0',
+              notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0, totalDist:0, temperatureOut: '0', hum : '0',
           }
       }
       firstAlert() {  //function which will call on click of first button
@@ -162,12 +162,23 @@ export default class HomeScreen extends React.Component {
                         console.log(error)
                     return
                     }
+                    //storage.set('cDistance', 0)
+                    //storage.set('storedDistance', 0)
+
+
+
                     console.log(characteristic.value)
                     temp1 = characteristic.value
                     console.log("raw")
                     console.log(temp1)
                     const decoded = base64.decode(temp1);
                     const coorarray = decoded.split(',')
+                    const check = coorarray[0]
+
+
+
+
+                    if(check !== "1"){
                     const lat = coorarray[0]
                     const lon = coorarray[1]
                     const OldLat = parseFloat(storage.getString('latitude'))
@@ -176,24 +187,36 @@ export default class HomeScreen extends React.Component {
                                          { latitude: OldLat, longitude: OldLong },
                                          { latitude: lat, longitude: lon}
                     );
-                    console.log("Last distance" ,distance)
-                    storage.set('cDistance', distance)
-
+                    /**console.log("Old lat", OldLat)
+                    console.log("Old long", OldLong)
+                    console.log("New lat", lat)
+                    console.log("New long", lon)
+                    console.log("Last distance" ,distance)**/
+                    //storage.set('cDistance', distance)
+                    console.log('Distance from last coordinate', distance)
                     const currentSum = storage.getNumber('storedDistance')
                     console.log("Stored Distance", currentSum)
                     const newtotalDist = distance + currentSum
+
+
                     console.log("New dist A AA A a", newtotalDist)
+                    storage.set('storedDistance', newtotalDist)
+                    const whatisNew = storage.getNumber('storedDistance')
+                    console.log("The modified distance is now: ", whatisNew)
                     this.setState({distCount: this.state.distCount + 1})
-                    this.setState({totalDist:newtotalDist})
-                    if(this.state.totalDist > 0){
+                    //this.setState({totalDist:newtotalDist})
+                    if(newtotalDist > 3){
                         console.log("Travelled far AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                         this.firstAlert
                         this.setState({totalDist:0})
+                        storage.set('storedDistance', 0)
                     }
                     console.log("The total count is ", this.state.distCount)
                     if(this.state.distCount > 5){
                         this.setState({distCount: 0})
                         storage.set('storedDistance', 0)
+                        const currentSum1 = storage.getNumber('storedDistance')
+                        console.log("Stored Distance after reset: ", currentSum1)
                         console.log("Reset Total")
 
                         getWeather({key: "a4e27f3712dc0f29cbfe4f2b7a95217b",
@@ -203,34 +226,47 @@ export default class HomeScreen extends React.Component {
                                    }).then(() => {
                                     var tempdata = new showWeather();
                                      temperdata = tempdata.temp
-                                     storage.set('temperature', temperdata);
-                                     const newtemp = storage.getNumber('temperature')
+                                     storage.set('temperatureOut', temperdata);
+                                     const newtemp = storage.getNumber('temperatureOut')
                                      console.log("THE NEW TEMP IS ", newtemp)
                                      console.log("Wtf lat", (this.state.latitude))
                                      console.log("wtf lon", (this.state.longitude))
                                      console.log(temperdata)
                                      console.log(tempdata)
-                                      storage.set('humidity', tempdata.humidity);
+                                      storage.set('humidityOut', tempdata.humidity);
                                       storage.set('localarea', tempdata.name);
                                       });
                     }
-                    storage.set('storedDistance', this.state.totalDist)
-                    console.log('Distance from last coordinate', distance)
+                    //storage.set('storedDistance', this.state.totalDist)
+
                     storage.set('latitude', lat)
                     this.setState({latitude: lat})
                     storage.set('longitude', lon)
                     this.setState({longitude: lon})
                     const newLat = storage.getString('latitude')
                     const newLon = storage.getString('longitude')
-                    const temperature = storage.getString('temperature')
+                    const temperatureOut = storage.getString('temperatureOut')
                     //storeData("latitude", JSON.stringify(lat))
                     //storeData("longitude", JSON.stringify(lon))
                     //const newLat = (getData("latitude"))
                     //const newLon = (getData("longitude"))
                     console.log("New lat", this.state.latitude)
                     console.log("New long", this.state.longitude)
-                    console.log("Temperature is", temperature)
+                    console.log("Temperature is", temperatureOut)
+                    }
+                    if(coorarray[0] == "1"){
+                        console.log("Temperature reading is occurring PLEASE WAIT")
+                        const humidity = coorarray[1]
+                        const temperature = coorarray[2]
+                        storage.set('temperature', temperature)
+                        storage.set('humidity', humidity)
+                        const Oldtemp = parseFloat(storage.getString('temperature'))
+                        const Oldhum = parseFloat(storage.getString('humidity'))
+                        console.log("OLD TEMP READING IS: ", Oldtemp)
+                        console.log("OLD HUMIDITY READING IS: ", Oldhum)
+                    }
                     this.setState({data:decoded})
+
                     //this.setState({data:temp1})
                     })
                 }).then(() => {
