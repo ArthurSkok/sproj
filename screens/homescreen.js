@@ -110,6 +110,7 @@ export default class HomeScreen extends React.Component {
               if((device.id === '6C:79:B8:B7:43:74')){
                 console.log('device found: ' + device.name + '(' + device.id + ')');
                 storage.set('hasAskedTrav', 0)
+                storage.set('isTravel', 0)
                 const serviceUUIDs= device.serviceUUIDs[0]
                 this.manager.stopDeviceScan();
                 this.manager.connectToDevice(device.id, {autoConnect:true}).then((device) => {
@@ -182,11 +183,11 @@ export default class HomeScreen extends React.Component {
                                         {
                                             text: 'No',
                                             onPress: () => {storage.set('hasAskedTrav', 1),this.setState({travel: ''}), setTimeout(() => {
-                                                                 storage.set('hasAskedTrav', 0);
+                                                                 storage.set('hasAskedTrav', 0), storage.set('isTravel', 0);
                                                                }, 10000)},
                                             style: 'cancel',
                                         },
-                                        {text: 'Navigate to Prompts to Answer', onPress: () => {storage.set('hasAskedTrav', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000),this.setState({travel: ''}), this.props.navigation.navigate('Prompt') }},
+                                        {text: 'Navigate to Prompts to Answer', onPress: () => {storage.set('hasAskedTrav', 1),storage.set('isTravel', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000),this.setState({travel: ''}), this.props.navigation.navigate('Prompt') }},
                                     ],
                                     {
                                         cancelable: true,
@@ -305,7 +306,7 @@ export default class HomeScreen extends React.Component {
         </View>
         {this.state.travel ?
                     (
-                    <TouchableOpacity style={styles.button} onPress={()=>{storage.set('hasAskedTrav', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000), this.props.navigation.navigate('Prompt'), storage.set('statustrav', 0), this.setState({travel: ''})}}>
+                    <TouchableOpacity style={styles.button} onPress={()=>{storage.set('hasAskedTrav', 1),storage.set('isTravel', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000), this.props.navigation.navigate('Prompt'), storage.set('statustrav', 0), this.setState({travel: ''})}}>
                         <Image style ={{height:100, width:100}} source={require("../assets/exclaim1.png")}/>
                     </TouchableOpacity>
 

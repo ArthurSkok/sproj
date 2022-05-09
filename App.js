@@ -8,6 +8,8 @@ import HomeScreen from './screens/homescreen';
 import MapScreen from './screens/mapscreen';
 import PromptScreen from './screens/promptscreen';
 import WeatherScreen from './screens/weatherscreen';
+import { MenuProvider } from 'react-native-popup-menu';
+
 import {
   SafeAreaView,
   ScrollView,
@@ -64,6 +66,7 @@ export default function App() {
         });
       }**/
         return(
+        <MenuProvider>
             <NavigationContainer>
                 <Stack.Navigator>
                     <Stack.Screen
@@ -84,6 +87,7 @@ export default function App() {
                     />
                 </Stack.Navigator>
             </NavigationContainer>
+        </MenuProvider>
         );
 
 }
