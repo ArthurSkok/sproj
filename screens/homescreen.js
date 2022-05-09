@@ -20,19 +20,7 @@ export default class HomeScreen extends React.Component {
               notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0, totalDist:0, temperatureOut: '0', hum : '0',
           }
       }
-      firstAlert() {  //function which will call on click of first button
-          Alert.alert(
-      'Our Title for first alert',
-      'Our message for the first alert',
-          [
-              {
-                  text: 'Cancel',
-                  onPress: () => console.log('End user is not at all interested for it'),
-                  style: 'cancel',
-              },
-          {text: 'OK', onPress: () => console.log('End user is interested for it')},
-          ] );
-      }
+
 
           /**componentDidMount(){
             this.interval = setInterval(() => getWeather({key:"f85bd4b89ec2b15644da1f943dc6e83e",
@@ -57,26 +45,7 @@ export default class HomeScreen extends React.Component {
           delete this.manager;
       }
       **/
-      /**UNSAFE_componentWillMount() {
-          this.manager = new BleManager()
-              if (Platform.OS === 'android' && Platform.Version >= 23) {
-                  PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-                      if (result) {
-                          console.log("Permission is OK");
-                          // this.retrieveConnected()
-                      } else {
-                          PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-                              if (result) {
-                                  console.log("User accept");
-                              } else {
-                                  console.log("User refuse");
-                              }
-                          });
-                      }
-                  });
-              }
-      }
-      **/
+
       getServicesAndCharacteristics(device) {
               return new Promise((resolve, reject) => {
                   device.services().then(services => {
@@ -140,6 +109,7 @@ export default class HomeScreen extends React.Component {
               }
               if((device.id === '6C:79:B8:B7:43:74')){
                 console.log('device found: ' + device.name + '(' + device.id + ')');
+                storage.set('hasAskedTrav', 0)
                 const serviceUUIDs= device.serviceUUIDs[0]
                 this.manager.stopDeviceScan();
                 this.manager.connectToDevice(device.id, {autoConnect:true}).then((device) => {
@@ -156,6 +126,7 @@ export default class HomeScreen extends React.Component {
                     this.setState({device:device})
                     return device.discoverAllServicesAndCharacteristics()
                     console.log("Got to here 2")
+
                 }).then((device) => {
                     device.monitorCharacteristicForService('0000ffe0-0000-1000-8000-00805f9b34fb', '0000ffe1-0000-1000-8000-00805f9b34fb', (error, characteristic) => {
                     if (error) {
@@ -187,12 +158,7 @@ export default class HomeScreen extends React.Component {
                                          { latitude: OldLat, longitude: OldLong },
                                          { latitude: lat, longitude: lon}
                     );
-                    /**console.log("Old lat", OldLat)
-                    console.log("Old long", OldLong)
-                    console.log("New lat", lat)
-                    console.log("New long", lon)
-                    console.log("Last distance" ,distance)**/
-                    //storage.set('cDistance', distance)
+
                     console.log('Distance from last coordinate', distance)
                     const currentSum = storage.getNumber('storedDistance')
                     console.log("Stored Distance", currentSum)
@@ -207,7 +173,26 @@ export default class HomeScreen extends React.Component {
                     //this.setState({totalDist:newtotalDist})
                     if(newtotalDist > 1){
                         console.log("Travelled far AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                        this.firstAlert
+                        const statustrav = storage.getString('hasAskedTrav')
+                        if(statustrav == 0){
+                        Alert.alert(
+                            'Travel Notification',
+                                'Are you currently in the process of non-pedestrian travel?',
+                                    [
+                                        {
+                                            text: 'No',
+                                            onPress: () => {storage.set('hasAskedTrav', 1),this.setState({travel: ''}), setTimeout(() => {
+                                                                 storage.set('hasAskedTrav', 0);
+                                                               }, 10000)},
+                                            style: 'cancel',
+                                        },
+                                        {text: 'Navigate to Prompts to Answer', onPress: () => {storage.set('hasAskedTrav', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000),this.setState({travel: ''}), this.props.navigation.navigate('Prompt') }},
+                                    ],
+                                    {
+                                        cancelable: true,
+                                    }
+                        );
+                        }
                         this.setState({totalDist:0})
                         this.setState({travel:1})
                         storage.set('storedDistance', 0)
@@ -320,7 +305,7 @@ export default class HomeScreen extends React.Component {
         </View>
         {this.state.travel ?
                     (
-                    <TouchableOpacity style={styles.button} onPress={()=>{this.props.navigation.navigate('Prompt'), this.setState({travel: ''})}}>
+                    <TouchableOpacity style={styles.button} onPress={()=>{storage.set('hasAskedTrav', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000), this.props.navigation.navigate('Prompt'), storage.set('statustrav', 0), this.setState({travel: ''})}}>
                         <Image style ={{height:100, width:100}} source={require("../assets/exclaim1.png")}/>
                     </TouchableOpacity>
 
