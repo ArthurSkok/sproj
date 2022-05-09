@@ -4,36 +4,39 @@ import { Navigation } from 'react-native-navigation';
 import { DataTable } from 'react-native-paper';
 import {storage} from './homescreen';
 import { MenuProvider } from 'react-native-popup-menu';
+import { openDatabase } from 'react-native-sqlite-storage';
 import Menu, {
   MenuOptions,
   MenuOption,
   MenuTrigger,
   renderers,
 } from 'react-native-popup-menu';
-
+//if(this.state.travelling == 1){set closeTravel to true
 const { ContextMenu, SlideInMenu, Popover } = renderers;
 class PromptScreen extends React.Component {
     constructor (props){
                   super(props)
 
                   this.state = {
-                  travelling:0, texts:'', renderer:ContextMenu,
+                  travelling:0, closeTravel:true, texts:'', travelState:false, renderer:Popover,
               }
         }
         componentDidMount(){
             this.interval = setInterval(() => {this.setState({
-            travelling:storage.getNumber('isTravel'),
-            }),
+            travelling:storage.getNumber('isTravel')}); if(this.state.travelling == 1){this.setState({closeTravel:true})};
             console.log("Current state of travelling is", this.state.travelling)}, 2000)
         };
         componentWillUnmount(){
             clearInterval(this.interval);
         };
 
+
   render() {
     var data = [["Yes", "No"]];
 
-    return (
+    if(this.state.closeTravel){
+        return(
+
     <>
     <View style = {styles.bottomButton}>
                <Button
@@ -42,33 +45,75 @@ class PromptScreen extends React.Component {
                     this.props.navigation.navigate('Home')
                   }
                />
-               </View>
-           <Text style = {styles.question}>Are you currently travelling?</Text>
-    <Menu
+        </View>
+        <Text style = {styles.question}>Are you currently travelling?</Text>
+        <Menu
               renderer={this.state.renderer}
               rendererProps={{ anchorStyle: styles.anchorStyle }}
-              style={{ height: 50 }}
+              style={{ height: 75 }}
             >
-              <MenuTrigger text='Select option' customStyles={triggerStyles} />
+              <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
               <MenuOptions customStyles={optionsStyles}>
-                <MenuOption text='Context Menu'
-                  onSelect={() => this.setState({renderer: ContextMenu})}/>
-                <MenuOption text='Slide-in Menu'
-                  onSelect={() => this.setState({renderer: SlideInMenu})}/>
-                <MenuOption text='Popover'
-                  onSelect={() => this.setState({renderer: Popover})}/>
-                <MenuOption text='Three (custom)' customStyles={optionStyles}
-                  onSelect={() => alert('Selected custom styled option')} />
-                <MenuOption disabled={true}>
-                  <Text style={{color: '#ccc'}}>Four (disabled)</Text>
-                </MenuOption>
+                <MenuOption text='Yes'
+                  onSelect={() => {storage.set('isTravel', 0),this.setState({travelState:true, closeTravel: false})}}/>
+                <MenuOption text='No' customStyles={optionStyles}
+                  onSelect={() =>  {storage.set('isTravel', 0),this.setState({travelState:false, closeTravel: false})}}/>
               </MenuOptions>
             </Menu>
+            </>
+            )
 
 
-</>
+    }
+    if(this.state.travelState){
+            return(
 
-    );
+        <>
+        <View style = {styles.bottomButton}>
+                   <Button
+                      title="Go to home screen"
+                      onPress={() =>
+                        this.props.navigation.navigate('Home')
+                      }
+                   />
+            </View>
+            <Text style = {styles.question}>What is your current method of transportation?</Text>
+            <Menu
+                  renderer={this.state.renderer}
+                  rendererProps={{ anchorStyle: styles.anchorStyle }}
+                  style={{ height: 75 }}
+                >
+                  <MenuTrigger text='Select amongst available options:' customStyles={triggerStyles} />
+                  <MenuOptions customStyles={optionsStyles}>
+                    <MenuOption text='Walking'
+                      onSelect={() => this.setState({travelState: false})}/>
+                    <MenuOption text='Car' customStyles={optionStyles}
+                      onSelect={() =>  this.setState({travelState: false})}/>
+                    <MenuOption text='Subway' customStyles={optionStyles}
+                      onSelect={() =>  this.setState({travelState: false})}/>
+                    <MenuOption text='Bus' customStyles={optionStyles}
+                      onSelect={() =>  this.setState({travelState: false})}/>
+                    <MenuOption text='Flight' customStyles={optionStyles}
+                      onSelect={() =>  this.setState({travelState: false})}/>
+                  </MenuOptions>
+                </Menu>
+                </>
+                )
+
+
+        }
+    else{
+        return (
+            <View style = {styles.bottomButton}>
+                           <Button
+                              title="Go to home screen"
+                              onPress={() =>
+                                this.props.navigation.navigate('Home')
+                              }
+                           />
+                    </View>
+        )
+    }
 }
 }
 const triggerStyles = {
@@ -76,12 +121,12 @@ const triggerStyles = {
     color: 'white',
   },
   triggerOuterWrapper: {
-    backgroundColor: 'orange',
+    backgroundColor: 'black',
     padding: 5,
     flex: 1,
   },
   triggerWrapper: {
-    backgroundColor: 'blue',
+    backgroundColor: 'gray',
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
@@ -97,14 +142,14 @@ const triggerStyles = {
 
 const optionsStyles = {
   optionsContainer: {
-    backgroundColor: 'green',
+    backgroundColor: 'black',
     padding: 5,
   },
   optionsWrapper: {
-    backgroundColor: 'purple',
+    backgroundColor: 'black',
   },
   optionWrapper: {
-    backgroundColor: 'yellow',
+    backgroundColor: 'green',
     margin: 5,
   },
   optionTouchable: {
@@ -122,7 +167,7 @@ const optionStyles = {
     activeOpacity: 40,
   },
   optionWrapper: {
-    backgroundColor: 'pink',
+    backgroundColor: 'red',
     margin: 5,
   },
   optionText: {
