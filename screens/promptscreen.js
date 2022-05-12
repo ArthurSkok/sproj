@@ -235,7 +235,7 @@ ListViewItemSeparator = () => {
                                               <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
                                               <MenuOptions customStyles={optionsStyles}>
                                                 <MenuOption text='Entering a building'
-                                                  onSelect={() => {this.getDate(),this.setState({tempTypeYes:'Building'}) }}/>
+                                                  onSelect={() => {this.getDate(),this.setState({tempTypeYes:'Building Entered'}) }}/>
                                                 <MenuOption text='Stopping travel'
                                                   onSelect={() => {this.getDate(),this.setState({tempTypeYes:'End Travel'})}}/>
                                                 <MenuOption text='No' customStyles={optionStyles}
@@ -344,7 +344,20 @@ ListViewItemSeparator = () => {
                                 )}
                             />
                             </View>
-
+                        <FlatList
+                                                data={this.state.items1}
+                                                scrollEnabled = {false}
+                                                ItemSeparatorComponent={this.ListViewItemSeparator}
+                                                keyExtractor={(item, index) => index.toString()}
+                                                renderItem={({ item }) => (
+                                                    <View key={item.ID} style={styles.templist}>
+                                                           <Text>Id: {item.ID}</Text>
+                                                           <Text>Type of Action: {item.temperatureM}</Text>
+                                                           <Text>Temperature Difference: {item.difference}</Text>
+                                                             <Text>TimeStamp: {item.timeStamp}</Text>
+                                                                        </View>
+                                                                    )}
+                                                                />
                             </>
                             )
 
@@ -389,7 +402,22 @@ ListViewItemSeparator = () => {
                         <Text>Id: {item.ID}</Text>
                         <Text>Type of travel: {item.travelType}</Text>
                         <Text>TimeStamp: {item.timeStamp}</Text>
+            <FlatList
+                                    data={this.state.items1}
+                                    scrollEnabled = {false}
+                                    ItemSeparatorComponent={this.ListViewItemSeparator}
+                                    keyExtractor={(item, index) => index.toString()}
+                                    renderItem={({ item }) => (
+                                        <View key={item.ID} style={styles.templist}>
+                                               <Text>Id: {item.ID}</Text>
+                                               <Text>Type of Action: {item.temperatureM}</Text>
+                                               <Text>Temperature Difference: {item.difference}</Text>
+                                                 <Text>TimeStamp: {item.timeStamp}</Text>
+                                                            </View>
+                                                        )}
+                                                    />
                     </View>
+
                 )}
             />
             </View>
@@ -453,6 +481,20 @@ ListViewItemSeparator = () => {
                                                       </View>
                                                   )}
                                               />
+                                   <FlatList
+                                                           data={this.state.items1}
+                                                           scrollEnabled = {false}
+                                                           ItemSeparatorComponent={this.ListViewItemSeparator}
+                                                           keyExtractor={(item, index) => index.toString()}
+                                                           renderItem={({ item }) => (
+                                                               <View key={item.ID} style={styles.templist}>
+                                                                      <Text>Id: {item.ID}</Text>
+                                                                      <Text>Type of Action: {item.temperatureM}</Text>
+                                                                      <Text>Temperature Difference: {item.difference}</Text>
+                                                                        <Text>TimeStamp: {item.timeStamp}</Text>
+                                                                                   </View>
+                                                                               )}
+                                                                           />
                                   </View>
 
                 </>
@@ -487,6 +529,20 @@ ListViewItemSeparator = () => {
                                                            </View>
                                                        )}
                                                    />
+                                        <FlatList
+                                                                data={this.state.items1}
+                                                                scrollEnabled = {false}
+                                                                ItemSeparatorComponent={this.ListViewItemSeparator}
+                                                                keyExtractor={(item, index) => index.toString()}
+                                                                renderItem={({ item }) => (
+                                                                    <View key={item.ID} style={styles.templist}>
+                                                                           <Text>Id: {item.ID}</Text>
+                                                                           <Text>Type of Action: {item.temperatureM}</Text>
+                                                                           <Text>Temperature Difference: {item.difference}</Text>
+                                                                             <Text>TimeStamp: {item.timeStamp}</Text>
+                                                                                        </View>
+                                                                                    )}
+                                                                                />
                                       </View>
                                       </>
         )
