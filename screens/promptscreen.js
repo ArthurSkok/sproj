@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, View , Button, Dimensions } from 'react-native';
+import { FlatList, StyleSheet, Text, View , Button, Dimensions , ScrollView} from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { DataTable } from 'react-native-paper';
 import {storage} from './homescreen';
@@ -21,16 +21,18 @@ class PromptScreen extends React.Component {
                   super(props)
 
                   this.state = {
-                  travelling:0, closeTravel:false, texts:'', travelState:false, renderer:Popover,
-                   travelYes:'', travelType:'', items: [], empty:'', CurrentDate:'',
+                  travelling:0, temperatureMay:1 , closeTravel:true, closeTemperature:false, texts:'', travelState:false, renderer:Popover,
+                   travelYes:'', travelType:'', items: [], items1:[], empty:'', CurrentDate:'', tempDiff:'', tempTypeYes:''
               }
 
         }
         componentDidMount(){
         this.fetch.call(this);
+        this.fetch1.call(this);
 
-            this.interval = setInterval(() => {this.setState({
-            travelling:storage.getNumber('isTravel')}); if(this.state.travelling == 1){this.setState({closeTravel:true})};
+            this.interval = setInterval(() => {this.setState({tempDiff:storage.getNumber('differenceT'),
+            travelling:storage.getNumber('isTravel')/**, temperatureMay:storage.getNumber('isTemp')**/}); if(this.state.travelling == 1){this.setState({closeTravel:true})};
+            if(this.state.temperatureMay == 1){this.setState({closeTemperature:true})};
             console.log("Current state of travelling is", this.state.travelling)}, 2000)
         };
         componentWillUnmount(){
@@ -68,6 +70,35 @@ class PromptScreen extends React.Component {
                                    });
 
         }
+        fetch1(){
+                      console.log('fetching data');
+                       db.transaction((tx) => {
+                                             tx.executeSql(
+                                               'SELECT * FROM Temperature ',
+                                               [],
+                                               (tx, results) => {
+                                                 var temp = [];
+                                                 for (let i = 0; i < results.rows.length; ++i){
+                                                   temp.push(results.rows.item(i));
+                                                 }
+                                                 this.setState({items1:temp});
+
+                                                 if (results.rows.length >= 1) {
+                                                 console.log("The database is false:", this.state.empty);
+                                                   this.setState({empty:'false'});
+                                                   console.log(this.state.items1)
+                                                 }
+                                                 else {
+                                                 console.log("The database is: true", this.state.empty);
+                                                   this.setState({empty:'true'});
+                                                 }
+
+                                               }
+                                             );
+
+                                           });
+
+                }
         addrecord(){
             console.log('adding travel record');
             const tY = this.state.travelYes;
@@ -93,6 +124,31 @@ class PromptScreen extends React.Component {
 
                     );
                     }
+        addtemprecord(){
+                    console.log('adding a temperature record');
+                    const tM = this.state.tempTypeYes;
+                    const diffT = this.state.tempDiff;
+                    const tST = this.state.CurrentDate;
+                    console.log("THE TS IS:", tST)
+                            db.transaction((tx) => {
+                                tx.executeSql(
+                                'INSERT INTO Temperature (temperatureM, difference, timeStamp) VALUES (?,?,?)',
+                                              [tM, diffT, tST],
+                                              (tx, results) =>{
+                                              if(results.rowsAffected > 0){
+                                              console.log("added data")
+                                              }
+                                              else{
+                                              console.log("no data:");
+                                              }
+                                              }
+
+                                )
+
+                            }
+
+                            );
+                            }
         getDate(){
                 var date = new Date().getDate(); //Current Date
                 var month = new Date().getMonth() + 1; //Current Month
@@ -158,31 +214,170 @@ ListViewItemSeparator = () => {
   render() {
     var data = [["Yes", "No"]];
     if(this.state.closeTravel){
+    if(this.state.temperatureMay == 1){
+        return(
+
+            <>
+            <View style = {styles.bottomButton}>
+                                   <Button
+                                      title="Go to home screen"
+                                      onPress={() =>
+                                        this.props.navigation.navigate('Home')
+                                      }
+                                   />
+                        </View>
+            <Text style = {styles.question}>Are you currently inside a building/stopped travelling?</Text>
+                                        <Menu
+                                              renderer={this.state.renderer}
+                                              rendererProps={{ anchorStyle: styles.anchorStyle }}
+                                              style={{ height: 75 }}
+                                            >
+                                              <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
+                                              <MenuOptions customStyles={optionsStyles}>
+                                                <MenuOption text='Entering a building'
+                                                  onSelect={() => {this.getDate(),this.setState({tempTypeYes:'Building'}) }}/>
+                                                <MenuOption text='Stopping travel'
+                                                  onSelect={() => {this.getDate(),this.setState({tempTypeYes:'End Travel'})}}/>
+                                                <MenuOption text='No' customStyles={optionStyles}
+                                                  onSelect={() =>  {this.setState({temperatureMay:0, closeTravel: false})}}/>
+                                              </MenuOptions>
+                                            </Menu>
+            <View>
+
+            <Button style = {styles.ButtonSub}
+                title ="Click to log?"
+                onPress={() =>{storage.set('isTemp', 0),this.setState({temperatureMay:0}),this.addtemprecord()}
+
+            }
+            />
+
+            <Text>BLAH{this.state.empty}</Text>
+            <Text style = {styles.question}>Are you currently travelling?</Text>
+                            <Menu
+                                  renderer={this.state.renderer}
+                                  rendererProps={{ anchorStyle: styles.anchorStyle }}
+                                  style={{ height: 75 }}
+                                >
+                                  <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
+                                  <MenuOptions customStyles={optionsStyles}>
+                                    <MenuOption text='Yes'
+                                      onSelect={() => {storage.set('isTravel', 0),this.getDate(),this.setState({travelState:true, closeTravel: false, travelYes:"Yes"})}}/>
+                                    <MenuOption text='No' customStyles={optionStyles}
+                                      onSelect={() =>  {storage.set('isTravel', 0),this.setState({travelState:false, closeTravel: false})}}/>
+                                  </MenuOptions>
+                                </Menu>
+
+
+                    <FlatList
+                        data={this.state.items}
+                        scrollEnabled = {true}
+                        ItemSeparatorComponent={this.ListViewItemSeparator}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) => (
+                            <View key={item.ID} style={this.getTextStyle(item.travelType)}>
+                                <Text>Id: {item.ID}</Text>
+                                <Text>Type of travel: {item.travelType}</Text>
+                                <Text>TimeStamp: {item.timeStamp}</Text>
+                            </View>
+                        )}
+                    />
+                    <FlatList
+                        data={this.state.items1}
+                        scrollEnabled = {false}
+                        ItemSeparatorComponent={this.ListViewItemSeparator}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) => (
+                            <View key={item.ID} style={styles.templist}>
+                                   <Text>Id: {item.ID}</Text>
+                                   <Text>Type of Action: {item.temperatureM}</Text>
+                                   <Text>Temperature Difference: {item.difference}</Text>
+                                     <Text>TimeStamp: {item.timeStamp}</Text>
+                                                </View>
+                                            )}
+                                        />
+                    </View>
+                    </>
+
+                    )
+
+    }
+    else{
+        return(
+                    <>
+                    <View style = {styles.bottomButton}>
+                                           <Button
+                                              title="Go to home screen"
+                                              onPress={() =>
+                                                this.props.navigation.navigate('Home')
+                                              }
+                                           />
+                                </View>
+
+                    <Text>BLAH{this.state.empty}</Text>
+                    <Text style = {styles.question}>Are you currently travelling?</Text>
+                                    <Menu
+                                          renderer={this.state.renderer}
+                                          rendererProps={{ anchorStyle: styles.anchorStyle }}
+                                          style={{ height: 75 }}
+                                        >
+                                          <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
+                                          <MenuOptions customStyles={optionsStyles}>
+                                            <MenuOption text='Yes'
+                                              onSelect={() => {storage.set('isTravel', 0),this.getDate(),this.setState({travelState:true, closeTravel: false, travelYes:"Yes"})}}/>
+                                            <MenuOption text='No' customStyles={optionStyles}
+                                              onSelect={() =>  {storage.set('isTravel', 0),this.setState({travelState:false, closeTravel: false})}}/>
+                                          </MenuOptions>
+                                        </Menu>
+
+                            <View>
+                            <FlatList
+                                data={this.state.items}
+                                scrollEnabled = {true}
+                                ItemSeparatorComponent={this.ListViewItemSeparator}
+                                keyExtractor={(item, index) => index.toString()}
+                                renderItem={({ item }) => (
+                                    <View key={item.ID} style={this.getTextStyle(item.travelType)}>
+                                        <Text>Id: {item.ID}</Text>
+                                        <Text>Type of travel: {item.travelType}</Text>
+                                        <Text>TimeStamp: {item.timeStamp}</Text>
+                                    </View>
+                                )}
+                            />
+                            </View>
+
+                            </>
+                            )
+
+
+
+    }
     return(
     <>
-    <Text>BLAH{this.state.empty}</Text>
     <View style = {styles.bottomButton}>
-               <Button
-                  title="Go to home screen"
-                  onPress={() =>
-                    this.props.navigation.navigate('Home')
-                  }
-               />
-    </View>
-        <Text style = {styles.question}>Are you currently travelling?</Text>
-        <Menu
-              renderer={this.state.renderer}
-              rendererProps={{ anchorStyle: styles.anchorStyle }}
-              style={{ height: 75 }}
-            >
-              <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
-              <MenuOptions customStyles={optionsStyles}>
-                <MenuOption text='Yes'
-                  onSelect={() => {storage.set('isTravel', 0),this.getDate(),this.setState({travelState:true, closeTravel: false, travelYes:"Yes"})}}/>
-                <MenuOption text='No' customStyles={optionStyles}
-                  onSelect={() =>  {storage.set('isTravel', 0),this.setState({travelState:false, closeTravel: false})}}/>
-              </MenuOptions>
-            </Menu>
+                           <Button
+                              title="Go to home screen"
+                              onPress={() =>
+                                this.props.navigation.navigate('Home')
+                              }
+                           />
+                </View>
+
+    <Text>BLAH{this.state.empty}</Text>
+    <Text style = {styles.question}>Are you currently travelling?</Text>
+                    <Menu
+                          renderer={this.state.renderer}
+                          rendererProps={{ anchorStyle: styles.anchorStyle }}
+                          style={{ height: 75 }}
+                        >
+                          <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
+                          <MenuOptions customStyles={optionsStyles}>
+                            <MenuOption text='Yes'
+                              onSelect={() => {storage.set('isTravel', 0),this.getDate(),this.setState({travelState:true, closeTravel: false, travelYes:"Yes"})}}/>
+                            <MenuOption text='No' customStyles={optionStyles}
+                              onSelect={() =>  {storage.set('isTravel', 0),this.setState({travelState:false, closeTravel: false})}}/>
+                          </MenuOptions>
+                        </Menu>
+
             <View>
             <FlatList
                 data={this.state.items}
@@ -265,6 +460,7 @@ ListViewItemSeparator = () => {
 
 
         }
+
     else{
         return (
         <>
@@ -382,6 +578,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     opacity: 0.5,
   },
+  templist:{
+    backgroundColor:'black',
+    color:'white',
+    },
+
   anchorStyle: {
     backgroundColor: 'blue',
   },

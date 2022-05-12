@@ -69,31 +69,8 @@ export default class HomeScreen extends React.Component {
       failed= (e) =>{
         Alert.alert('Something went wrong !', `${e}`)
       }
-    setData = async () => {
-            if (name.length == 0 || age.length == 0) {
-                Alert.alert('Warning!', 'Please write your data.')
-            } else {
-                try {
-                    // var user = {
-                    //     Name: name,
-                    //     Age: age
-                    // }
-                    // await AsyncStorage.setItem('UserData', JSON.stringify(user));
-                    await db.transaction(async (tx) => {
-                        // await tx.executeSql(
-                        //     "INSERT INTO Users (Name, Age) VALUES ('" + name + "'," + age + ")"
-                        // );
-                        await tx.executeSql(
-                            "INSERT INTO Users (Name, Age) VALUES (?,?)",
-                            [name, age]
-                        );
-                    })
-                    navigation.navigate('Home');
-                } catch (error) {
-                    console.log(error);
-                }
-            }
-        }
+
+
 
 
           /**componentDidMount(){
@@ -186,7 +163,9 @@ export default class HomeScreen extends React.Component {
                 console.log('device found: ' + device.name + '(' + device.id + ')');
                 storage.set('hasAskedTrav', 0)
                 storage.set('isTravel', 0)
-                storage.set('mayTemp', 0)
+                storage.set('isTemp', 1)
+                storage.set('checkTemp', 0)
+                storage.set('differenceT', 0)
                 const serviceUUIDs= device.serviceUUIDs[0]
                 this.manager.stopDeviceScan();
                 this.manager.connectToDevice(device.id, {autoConnect:true}).then((device) => {
@@ -320,12 +299,41 @@ export default class HomeScreen extends React.Component {
                     }
                     if(coorarray[0] == "1"){
                         console.log("Temperature reading is occurring PLEASE WAIT")
+                        const oldTempOut = storage.getNumber('temperatureOut')
+                        const oldHumOut = storage.getNumber('humidityOut')
+                        const checkTemp = storage.getNumber('mayTemp')
                         const humidity = coorarray[1]
                         const temperature = coorarray[2]
                         storage.set('temperature', temperature)
                         storage.set('humidity', humidity)
                         const Oldtemp = parseFloat(storage.getString('temperature'))
                         const Oldhum = parseFloat(storage.getString('humidity'))
+                        var diff = (oldTempOut - Oldtemp);
+                        if(diff > 5){
+                            if(checkTemp = 0){
+                            Alert.alert(
+                                                        'Temperature Notification',
+                                                            'Have you entered a building or stopped travelling?',
+                                                                [
+                                                                    {
+                                                                        text: 'No',
+                                                                        onPress: () => {storage.set('checkTemp', 1), setTimeout(() => {
+                                                                                             storage.set('checkTemp', 0), storage.set('isTemp', 0);
+                                                                                           }, 10000)},
+                                                                        style: 'cancel',
+                                                                    },
+                                                                    {text: 'Navigate to Prompts to Answer', onPress: () => {storage.set('differenceT', diff),storage.set('checkTemp', 1),storage.set('isTemp', 1), setTimeout(() => {storage.set('checkTemp', 0);}, 10000), this.props.navigation.navigate('Prompt') }},
+                                                                ],
+                                                                {
+                                                                    cancelable: true,
+                                                                }
+                                                    );
+                                storage.set('isTemp', 1)
+                                storage.set('checkTemp', 1)
+                                setTimeout(() => {storage.set('checkTemp', 0);}, 100000);
+                            }
+                            storage.set()
+                        }
                         console.log("OLD TEMP READING IS: ", Oldtemp)
                         console.log("OLD HUMIDITY READING IS: ", Oldhum)
                     }
