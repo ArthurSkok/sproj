@@ -9,6 +9,7 @@ import MapScreen from './screens/mapscreen';
 import PromptScreen from './screens/promptscreen';
 import WeatherScreen from './screens/weatherscreen';
 import { MenuProvider } from 'react-native-popup-menu';
+import { openDatabase } from 'react-native-sqlite-storage';
 
 import {
   SafeAreaView,
@@ -32,6 +33,7 @@ const manager = new BleManager();
 const SERVICE_UUID ='';
 **/
 /**https://github.com/palmmaximilian/ReactNativeArduinoBLE/blob/main/App.tsx**/
+var db = openDatabase({ name: 'TravelDatabase.db' });
 export default function App() {
 
       /**async function scanDevices() {

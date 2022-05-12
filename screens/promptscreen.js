@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View , Button, Dimensions } from 'react-native';
+import { FlatList, StyleSheet, Text, View , Button, Dimensions } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { DataTable } from 'react-native-paper';
 import {storage} from './homescreen';
 import { MenuProvider } from 'react-native-popup-menu';
-import { openDatabase } from 'react-native-sqlite-storage';
+import { SQLite, openDatabase } from 'react-native-sqlite-storage';
+
 import Menu, {
   MenuOptions,
   MenuOption,
@@ -12,32 +13,154 @@ import Menu, {
   renderers,
 } from 'react-native-popup-menu';
 //if(this.state.travelling == 1){set closeTravel to true
+var db = openDatabase({ name: 'TravelDatabase.db' });
+
 const { ContextMenu, SlideInMenu, Popover } = renderers;
 class PromptScreen extends React.Component {
     constructor (props){
                   super(props)
 
                   this.state = {
-                  travelling:0, closeTravel:true, texts:'', travelState:false, renderer:Popover,
+                  travelling:0, closeTravel:false, texts:'', travelState:false, renderer:Popover,
+                   travelYes:'', travelType:'', items: [], empty:'', CurrentDate:'',
               }
+
         }
         componentDidMount(){
+        this.fetch.call(this);
+
             this.interval = setInterval(() => {this.setState({
             travelling:storage.getNumber('isTravel')}); if(this.state.travelling == 1){this.setState({closeTravel:true})};
             console.log("Current state of travelling is", this.state.travelling)}, 2000)
         };
         componentWillUnmount(){
             clearInterval(this.interval);
+        }
+        dosomething(){
+            console.log("Please wtf");
+        }
+        fetch(){
+              console.log('fetching data');
+               db.transaction((tx) => {
+                                     tx.executeSql(
+                                       'SELECT * FROM Travel',
+                                       [],
+                                       (tx, results) => {
+                                         var temp = [];
+                                         for (let i = 0; i < results.rows.length; ++i){
+                                           temp.push(results.rows.item(i));
+                                         }
+                                         this.setState({items:temp});
+
+                                         if (results.rows.length >= 1) {
+                                         console.log("The database is false:", this.state.empty);
+                                           this.setState({empty:'false'});
+                                           console.log(this.state.items)
+                                         }
+                                         else {
+                                         console.log("The database is: true", this.state.empty);
+                                           this.setState({empty:'true'});
+                                         }
+
+                                       }
+                                     );
+
+                                   });
+
+        }
+        addrecord(){
+            console.log('adding travel record');
+            const tY = this.state.travelYes;
+            const tT = this.state.travelType;
+            const tS = this.state.CurrentDate;
+            console.log("THE TS IS:", tS)
+                    db.transaction((tx) => {
+                        tx.executeSql(
+                        'INSERT INTO Travel (travelYes, travelType, timeStamp) VALUES (?,?,?)',
+                                      [tY, tT, tS],
+                                      (tx, results) =>{
+                                      if(results.rowsAffected > 0){
+                                      console.log("added data")
+                                      }
+                                      else{
+                                      console.log("no data:");
+                                      }
+                                      }
+
+                        )
+
+                    }
+
+                    );
+                    }
+        getDate(){
+                var date = new Date().getDate(); //Current Date
+                var month = new Date().getMonth() + 1; //Current Month
+                var hours = new Date().getHours(); //Current Hours
+                var min = new Date().getMinutes(); //Current Minutes
+                console.log("The date is", date)
+                const dateS = month + '/' + date  + ' ' + hours + ':' + min;
+                const dateString = dateS.toString();
+                console.log("the new string", dateString);
+                this.setState({CurrentDate:dateS});
+                const check = this.state.CurrentDate;
+                console.log("hIUh", check);
         };
+
+
+
+
+ListViewItemSeparator = () => {
+            return (
+              <View style={{ height: 0.2, width: '100%', backgroundColor: '#808080' }} />
+            );
+          };
+    getTextStyle(id) {
+     switch(id) {
+     case 'walking':
+      return {
+        backgroundColor: 'green', padding: 20,
+      }
+      break;
+      case 'car':
+      return{
+        color:'black', backgroundColor: 'yellow', padding: 20,
+      }
+      break;
+      case 'subway':
+      return {
+        backgroundColor: 'blue', padding: 20,
+      }
+      break;
+      case 'bus':
+      return {
+        backgroundColor: 'green', padding: 20,
+      }
+      break;
+      case 'flying':
+      return {
+        backgroundColor: 'red', padding: 20,
+      }
+      break;
+      default:
+
+       return {
+          backgroundColor: 'white', padding: 20,
+
+     }
+    }
+    }
+
+
+
 
 
   render() {
     var data = [["Yes", "No"]];
-
     if(this.state.closeTravel){
-        return(
-
+    return(
     <>
+    <Text>BLAH{this.state.empty}</Text>
     <View style = {styles.bottomButton}>
                <Button
                   title="Go to home screen"
@@ -45,7 +168,7 @@ class PromptScreen extends React.Component {
                     this.props.navigation.navigate('Home')
                   }
                />
-        </View>
+    </View>
         <Text style = {styles.question}>Are you currently travelling?</Text>
         <Menu
               renderer={this.state.renderer}
@@ -55,11 +178,27 @@ class PromptScreen extends React.Component {
               <MenuTrigger text='Select Yes or No' customStyles={triggerStyles} />
               <MenuOptions customStyles={optionsStyles}>
                 <MenuOption text='Yes'
-                  onSelect={() => {storage.set('isTravel', 0),this.setState({travelState:true, closeTravel: false})}}/>
+                  onSelect={() => {storage.set('isTravel', 0),this.getDate(),this.setState({travelState:true, closeTravel: false, travelYes:"Yes"})}}/>
                 <MenuOption text='No' customStyles={optionStyles}
                   onSelect={() =>  {storage.set('isTravel', 0),this.setState({travelState:false, closeTravel: false})}}/>
               </MenuOptions>
             </Menu>
+            <View>
+            <FlatList
+                data={this.state.items}
+                scrollEnabled = {true}
+                ItemSeparatorComponent={this.ListViewItemSeparator}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                    <View key={item.ID} style={this.getTextStyle(item.travelType)}>
+                        <Text>Id: {item.ID}</Text>
+                        <Text>Type of travel: {item.travelType}</Text>
+                        <Text>TimeStamp: {item.timeStamp}</Text>
+                    </View>
+                )}
+            />
+            </View>
+
             </>
             )
 
@@ -77,6 +216,7 @@ class PromptScreen extends React.Component {
                       }
                    />
             </View>
+
             <Text style = {styles.question}>What is your current method of transportation?</Text>
             <Menu
                   renderer={this.state.renderer}
@@ -86,17 +226,40 @@ class PromptScreen extends React.Component {
                   <MenuTrigger text='Select amongst available options:' customStyles={triggerStyles} />
                   <MenuOptions customStyles={optionsStyles}>
                     <MenuOption text='Walking'
-                      onSelect={() => this.setState({travelState: false})}/>
-                    <MenuOption text='Car' customStyles={optionStyles}
-                      onSelect={() =>  this.setState({travelState: false})}/>
-                    <MenuOption text='Subway' customStyles={optionStyles}
-                      onSelect={() =>  this.setState({travelState: false})}/>
-                    <MenuOption text='Bus' customStyles={optionStyles}
-                      onSelect={() =>  this.setState({travelState: false})}/>
-                    <MenuOption text='Flight' customStyles={optionStyles}
-                      onSelect={() =>  this.setState({travelState: false})}/>
+                      onSelect={() => {console.log("GAH"),this.setState({travelType:'walking'})}}/>
+
+                    <MenuOption text='Car' style={this.getTextStyle('car')}
+                      onSelect={() =>  {this.setState({travelType:'car'})}}/>
+                    <MenuOption text='Subway' style={this.getTextStyle('subway')}
+                      onSelect={() =>  {this.setState({travelType:'subway'})}}/>
+                    <MenuOption text='Bus' style={this.getTextStyle('bus')}
+                      onSelect={() =>  {this.setState({travelType:'bus'})}}/>
+                    <MenuOption text='Flight' style={this.getTextStyle('flying')}
+                      onSelect={() =>  {this.setState({travelType:'flying'})}}/>
                   </MenuOptions>
                 </Menu>
+                <View>
+                <Button style = {styles.ButtonSub}
+                                                    title ="Click to log?"
+                                                    onPress={() =>{this.setState({travelState:false}),this.addrecord()}
+
+                                                   }
+                                                   />
+                                   <FlatList
+                                                  data={this.state.items}
+                                                  scrollEnabled = {true}
+                                                  ItemSeparatorComponent={this.ListViewItemSeparator}
+                                                  keyExtractor={(item, index) => index.toString()}
+                                                  renderItem={({ item }) => (
+                                                      <View key={item.ID} style={this.getTextStyle(item.travelType)}>
+                                                          <Text>Id: {item.ID}</Text>
+                                                          <Text>Type of travel: {item.travelType}</Text>
+                                                          <Text>TimeStamp: {item.timeStamp}</Text>
+                                                      </View>
+                                                  )}
+                                              />
+                                  </View>
+
                 </>
                 )
 
@@ -104,6 +267,7 @@ class PromptScreen extends React.Component {
         }
     else{
         return (
+        <>
             <View style = {styles.bottomButton}>
                            <Button
                               title="Go to home screen"
@@ -112,13 +276,29 @@ class PromptScreen extends React.Component {
                               }
                            />
                     </View>
+                    <Text>{this.state.dbstate}</Text>
+                    <View>
+                                        <FlatList
+                                                       data={this.state.items}
+                                                       scrollEnabled = {true}
+                                                       ItemSeparatorComponent={this.ListViewItemSeparator}
+                                                       keyExtractor={(item, index) => index.toString()}
+                                                       renderItem={({ item }) => (
+                                                           <View key={item.ID} style={this.getTextStyle(item.travelType)}>
+                                                               <Text>Id: {item.ID}</Text>
+                                                               <Text>Type of travel: {item.travelType}</Text>
+                                                               <Text>TimeStamp: {item.timeStamp}</Text>
+                                                           </View>
+                                                       )}
+                                                   />
+                                      </View>
+                                      </>
         )
     }
 }
 }
 const triggerStyles = {
   triggerText: {
-    color: 'white',
   },
   triggerOuterWrapper: {
     backgroundColor: 'black',
@@ -157,8 +337,13 @@ const optionsStyles = {
     activeOpacity: 70,
   },
   optionText: {
-    color: 'brown',
+    color: 'black',
   },
+  ButtonSub:{
+    alignItems:'center',
+    color:'black',
+
+  }
 };
 
 const optionStyles = {

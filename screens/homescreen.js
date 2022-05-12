@@ -9,17 +9,91 @@ import { MMKV } from 'react-native-mmkv'
 export const storage = new MMKV()
 import { getDistance } from 'geolib';
 import { getWeather, dailyForecast, showWeather } from 'react-native-weather-api';
-
+import { openDatabase } from 'react-native-sqlite-storage';
+var db = openDatabase({ name: 'TravelDatabase.db' });
 
 export default class HomeScreen extends React.Component {
   constructor (props){
-          super(props)
-          this.manager = new BleManager()
+          super(props);
+          //const db = SQLite.openDatabase({name:'TravelDatabase'});
+            db.transaction((tx) => {
+                                    tx.executeSql(
+                                        "CREATE TABLE IF NOT EXISTS "
+                                        + "Travel "
+                                        + "(ID INTEGER PRIMARY KEY AUTOINCREMENT, travelYes TEXT, travelType TEXT, timeStamp TEXT);"
+                                    );
+                                    Alert.alert('Connected with success !')
+                                          {
+                                            cancelable: true
+                                          }
+
+
+                                })
+            db.transaction((tx) => {
+                                                tx.executeSql(
+                                                    "CREATE TABLE IF NOT EXISTS "
+                                                    + "Temperature "
+                                                    + "(ID INTEGER PRIMARY KEY AUTOINCREMENT, temperatureM INTEGER, difference INTEGER, timeStamp TEXT);"
+                                                );
+                                                Alert.alert('Connected with success !')
+                                                      {
+                                                        cancelable: true
+                                                      }
+
+
+                                            })
+          this.manager = new BleManager();
           this.state = {
               deviceid : '', travel :'', serviceUUID:'', characteristicsUUID : '', text1 : '',makedata : [],
-              notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0, totalDist:0, temperatureOut: '0', hum : '0',
-          }
+              notificationReceiving : false, data: '', latitude: '', longitude: '', distCount: 0, totalDist:0,
+              temperatureOut: '0', hum : '0', list:[],
+          };
+
+     /**createTable= () =>{
+
+    }**/
+
+    }
+
+
+    connected= () =>{
+        Alert.alert('Connected with success !')
+
+                                    {
+                                        cancelable: true
+                                    }
+
+
       }
+
+      failed= (e) =>{
+        Alert.alert('Something went wrong !', `${e}`)
+      }
+    setData = async () => {
+            if (name.length == 0 || age.length == 0) {
+                Alert.alert('Warning!', 'Please write your data.')
+            } else {
+                try {
+                    // var user = {
+                    //     Name: name,
+                    //     Age: age
+                    // }
+                    // await AsyncStorage.setItem('UserData', JSON.stringify(user));
+                    await db.transaction(async (tx) => {
+                        // await tx.executeSql(
+                        //     "INSERT INTO Users (Name, Age) VALUES ('" + name + "'," + age + ")"
+                        // );
+                        await tx.executeSql(
+                            "INSERT INTO Users (Name, Age) VALUES (?,?)",
+                            [name, age]
+                        );
+                    })
+                    navigation.navigate('Home');
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        }
 
 
           /**componentDidMount(){
@@ -97,6 +171,7 @@ export default class HomeScreen extends React.Component {
 
 
       async scanAndConnect() {
+
           /**this.setState({text1:"Scanning..."})**/
           this.manager.startDeviceScan(null, null, (error, device) => {
               console.log("Scanning...");
@@ -111,6 +186,7 @@ export default class HomeScreen extends React.Component {
                 console.log('device found: ' + device.name + '(' + device.id + ')');
                 storage.set('hasAskedTrav', 0)
                 storage.set('isTravel', 0)
+                storage.set('mayTemp', 0)
                 const serviceUUIDs= device.serviceUUIDs[0]
                 this.manager.stopDeviceScan();
                 this.manager.connectToDevice(device.id, {autoConnect:true}).then((device) => {
@@ -174,11 +250,12 @@ export default class HomeScreen extends React.Component {
                     //this.setState({totalDist:newtotalDist})
                     if(newtotalDist > 1){
                         console.log("Travelled far AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                        const statustrav = storage.getString('hasAskedTrav')
+                        const statustrav = storage.getNumber('hasAskedTrav')
+                        console.log(statustrav)
                         if(statustrav == 0){
                         Alert.alert(
                             'Travel Notification',
-                                'Are you currently in the process of non-pedestrian travel?',
+                                'Are you currently in the process of travelling?',
                                     [
                                         {
                                             text: 'No',
@@ -306,7 +383,7 @@ export default class HomeScreen extends React.Component {
         </View>
         {this.state.travel ?
                     (
-                    <TouchableOpacity style={styles.button} onPress={()=>{storage.set('hasAskedTrav', 1),storage.set('isTravel', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 10000), this.props.navigation.navigate('Prompt'), storage.set('statustrav', 0), this.setState({travel: ''})}}>
+                    <TouchableOpacity style={styles.button} onPress={()=>{storage.set('hasAskedTrav', 1),storage.set('isTravel', 1), setTimeout(() => {storage.set('hasAskedTrav', 0);}, 100000), this.props.navigation.navigate('Prompt'), storage.set('statustrav', 0), this.setState({travel: ''})}}>
                         <Image style ={{height:100, width:100}} source={require("../assets/exclaim1.png")}/>
                     </TouchableOpacity>
 
